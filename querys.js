@@ -50,6 +50,94 @@ const subirUsuariosGraphQL = async (usuarios) => {
     });
 }
 
+const editarUsuariosGraphQL = async (usuarios) => {
+    const url = 'http://localhost/graphql';
 
 
-module.exports = { subirUsuariosGraphQL }
+
+
+    usuarios.forEach(async (element, i) => {
+        const ids = await consultarIds();
+        console.log(ids[i].id);
+        const mutation = `
+
+    mutation {
+        users {
+          update (
+            id:${ids[i].id}
+            location: "${element.location}"
+            jobTitle: "${element.jobTitle}"
+            timezone: "${element.timezone}"
+
+          ) {
+            responseResult {
+            succeeded
+            slug
+            message
+
+        }
+
+    }
+}
+      }`;
+        const config = {
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            method: 'POST',
+            data: {
+                query: mutation
+            }
+        };
+
+        try {
+
+            const { data } = await axios(url, config);
+
+            console.log(data)
+
+        } catch (error) {
+
+            console.error(`Error al subir usuario`, error.message);
+        }
+    });
+}
+
+
+const consultarIds = async () => {
+    const url = 'http://localhost/graphql';
+    const mutation = `
+   
+  
+{
+    users {
+      list {
+        id
+        
+      }
+    }
+  }
+      
+    `;
+
+    const config = {
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+        },
+        method: 'POST',
+        data: {
+            query: mutation
+        }
+    };
+    try {
+        const { data } = await axios(url, config);
+        // console.log(data.data.users.list);
+        return data.data.users.list;
+    } catch (error) {
+        console.error("ERROR AL CONSULTAR" + error.message);
+    }
+}
+
+module.exports = { subirUsuariosGraphQL, editarUsuariosGraphQL }
